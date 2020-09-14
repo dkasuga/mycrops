@@ -39,7 +39,7 @@ tap_dev_open(char* name){
         perror("open");
         goto ERROR;
     }
-    strncpy(ifr.ifr_name, name, sizeof(if.ifr_name) - 1);
+    strncpy(ifr.ifr_name, name, sizeof(ifr.ifr_name) - 1);
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
     if(ioctl(dev->fd, TUNSETIFF, &ifr) == -1) {
         perror("ioctl [TUNSETIFF]");
@@ -95,7 +95,7 @@ tap_dev_tx (struct tap_dev *dev, const uint8_t *buf, size_t len) {
     return write(dev->fd, buf, len);
 }
 
-ssize_t
+int
 tap_dev_addr (char* name, uint8_t *dst, size_t size) {
     int soc;
     struct ifreq ifr;
@@ -112,7 +112,7 @@ tap_dev_addr (char* name, uint8_t *dst, size_t size) {
         close(soc);
         return -1;
     }
-    memcpy(dst, ifr.ifr_hdaddr.sa_data, size);
+    memcpy(dst, ifr.ifr_hwaddr.sa_data, size);
     close(soc);
     return 0;
 }
