@@ -91,6 +91,11 @@ tap_dev_rx(struct tap_dev *dev, void (*callback)(uint8_t *, size_t, void *), voi
 }
 
 ssize_t
+tap_dev_tx (struct tap_dev *dev, const uint8_t *buf, size_t len) {
+    return write(dev->fd, buf, len);
+}
+
+ssize_t
 tap_dev_addr (char* name, uint8_t *dst, size_t size) {
     int soc;
     struct ifreq ifr;
