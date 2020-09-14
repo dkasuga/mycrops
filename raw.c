@@ -47,11 +47,7 @@ rawdev_alloc (uint8_t type, char *name){
 
     switch(type) {
         case RAWDEV_TYPE_TAP:
-            ops->open = rawdev_tap_open;
-            ops->close = rawdev_tap_close;
-            ops->rx = rawdev_tap_rx;
-            ops->tx = rawdev_tap_tx;
-            ops->addr = rawdev_tap_addr;
+            ops = &tap_dev_ops;
             break;
         default:
             fprintf(stderr, "unsupported raw device type (%u)\n", type);
