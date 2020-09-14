@@ -19,17 +19,17 @@ rawdev_tap_close(struct rawdev *dev){
 
 static void
 rawdev_tap_rx (struct rawdev *dev, void (*callback)(uint8_t *, size_t, void *), void *arg, int timeout) {
-    tap_dev_rx(dev, callback, arg, timeout);
+    tap_dev_rx(dev->priv, callback, arg, timeout);
 }
 
 static ssize_t
 rawdev_tap_tx (struct rawdev *dev, const uint8_t *buf, size_t len) {
-    return tap_dev_tx(dev, buf, len);
+    return tap_dev_tx(dev->priv, buf, len);
 }
 
 static int
 rawdev_tap_addr (struct rawdev *dev, uint8_t *dst, size_t size) {
-    return tap_dev_addr(dev, dst, size);
+    return tap_dev_addr(dev->priv, dst, size);
 }
 
 struct rawdev_ops tap_dev_ops = {
