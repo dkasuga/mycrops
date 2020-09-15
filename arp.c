@@ -222,9 +222,13 @@ arp_rx (uint8_t *packet, size_t plen, struct netdev *dev){
     }
     message = (struct arp_ethernet *)packet;
     /* your code here: ヘッダの検証　*/
-    if(!message->hdr->hrd) { // ?Do I have the hardware type in ar$hrd?
+    if(ntoh16(message->hdr->hrd) != ARP_HRD_ETHERNET) { // ?Do I have the hardware type in ar$hrd?
         return;
     }
+    if(ntoh16(message->hdr->pro) != ETHERNET_TYPE_IP) {
+        return;
+    }
+
 #ifdef DEBUG
     fprintf(stderr, ">>> arp_rx <<<\n");
     arp_dump(packet, plen);
@@ -264,7 +268,7 @@ arp_rx (uint8_t *packet, size_t plen, struct netdev *dev){
         */
         if (ntoh16(message->hdr.op) == ARP_OP_REQUEST) { // requestじゃないことなんてあるのか？
             /* your code here: ARPリプライの送信 */
-            arp_send_reply(netif, message->sha, &message->spa, &message->spa);
+            arp_send_reply(netif, message->sha, &message->spa, message->sha);
         }
     }
     return;
