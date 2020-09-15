@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include "ethernet.h"
 
 #define NETDEV_TYPE_ETHERNET  (0x0001)
 #define NETDEV_TYPE_SLIP      (0x0002)
@@ -15,6 +16,13 @@
 #define NETDEV_FLAG_PROMISC   (0x0020)
 #define NETDEV_FLAG_RUNNING   (0x0040)
 #define NETDEV_FLAG_UP        (0x0080)
+
+#define NETDEV_PROTO_IP       ETHERNET_TYPE_IP
+#define NETDEV_PROTO_ARP      ETHERNET_TYPE_ARP
+#define NETDEV_PROTO_IPV6     ETHERNET_TYPE_IPV6
+
+#define NETIF_FAMILY_IPV4     (0x02)
+#define NETIF_FAMILY_IPV6     (0x0a)
 
 #ifndef IFNAMSIZ
 #define IFNAMSIZ (16)
@@ -39,6 +47,12 @@ struct netdev_def {
     struct netdev_ops *ops;
 };
 
+struct netif {
+    struct netif *next;
+    uint8_t family;
+    struct netdev *dev;
+}
+
 struct netdev {
     struct netdev *next;
     struct netif *ifs;
@@ -62,4 +76,11 @@ netdev_driver_register (struct netdev_def *def);
 extern struct netdev *
 netdev_alloc (uint16_t type);
 
+extern int
+netdev_proto_register (unsigned short type, void (*handler)(uint8_t *packet, size_t plen, struct netdev *dev));
+
+extern int
+netdev_add_netif(struct netdev *dev, struct netif *netif);
+extern struct netif *
+netdev_get_netif(struct netdev *dev, int family);
 #endif

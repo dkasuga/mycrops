@@ -3,6 +3,7 @@
 #include "util.h"
 #include "net.h"
 
+
 struct netdev_driver {
     struct netdev_driver *next;
     uint16_t type;
@@ -40,10 +41,71 @@ netdev_driver_register (struct netdev_def *def) {
     return 0;
 }
 
+struct netdev_proto {
+    struct netdev_proto *next;
+    uint16_t type;
+    void (*handler)(uint8_t *packet, size_t plen, struct netdev *dev);
+};
+
+static struct netdev_proto *protos;
+
+int
+netdev_proto_register (unsigned short type, void (*handler)(uint8_t *packet, size_t plen, struct netdev *dev)) {
+    struct netdev_proto *entry;
+
+    for (entry = protos; entry; entry = entry->next) {
+        if (entry->type == type) {
+            return -1;
+        }
+    }
+    entry = malloc(sizeof(struct netdev_proto));
+    if (!entry) {
+        return -1;
+    }
+    entry->next = protos;
+    entry->type = type;
+    entry->handler = handler;
+    protos = entry;
+    return 0;
+}
+
 static void
 netdev_rx_handler (struct netdev *dev, uint16_t type, uint8_t *packet, size_t plen) {
-        fprintf(stderr, "[%s] netdev_rx_handler: type=0x%04x, len=%zd\n", dev->name, type, plen);
-        hexdump(stderr, packet, plen);
+    struct netdev_proto *entry;
+
+    for(entry = protos; entry; entry = entry->next) {
+        if(htons16(entry->type) == type) {
+            entry->handler(packet, plen, dev);
+            return;
+        }
+    }
+}
+
+int
+netdev_add_netif (struct netdev *dev, struct netif *netif) {
+    struct netif *entry;
+
+    for (entry = dev->ifs; entry; entry = entry->next) {
+        if (entry->family == netif->family) {
+            return -1;
+        }
+    }
+    netif->next = dev->ifs;
+    netif->dev  = dev;
+    dev->ifs = netif;
+    return 0;
+}
+
+struct netif *
+netdev_get_netif (struct netdev *dev, int family) {
+    struct netif *entry;
+
+    for (entry = dev->ifs; entry; entry = entry->next) {
+        if (entry->family == family) {
+            return entry;
+        }
+    }
+    return NULL;
 }
 
 struct netdev *
