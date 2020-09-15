@@ -233,8 +233,8 @@ ethernet_tx (struct netdev *dev, uint16_t type, const uint8_t *payload, size_t p
 
     memcpy(hdr+1, payload, plen); // ?
     /* your code here: 最小サイズを考慮してフレーム長（flen）を正しく計算 */
-    if(plen < ETHERNET_FRAME_SIZE_MIN){
-        plen = ETHERNET_FRAME_SIZE_MIN;
+    if(plen < ETHERNET_PAYLOAD_SIZE_MIN){
+        plen = ETHERNET_PAYLOAD_SIZE_MIN;
     }
     flen = sizeof(struct ethernet_hdr) + plen;
 
