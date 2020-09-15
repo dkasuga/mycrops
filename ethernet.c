@@ -153,12 +153,12 @@ ethernet_rx (uint8_t *frame, size_t flen, void *arg){
     /* your code here: あて先MACアドレスの検証 */ 
     // 自分のアドレスにきたものかどうか
     if(memcmp(hdr->dst, dev->addr, ETHERNET_ADDR_LEN) != 0){
-        return;
+        // ブロードキャストアドレスかどうか
+        if(memcmp(hdr->dst, ETHERNET_ADDR_BROADCAST, ETHERNET_ADDR_LEN) != 0){
+            return;
+        }
     }
-    // ブロードキャストアドレスかどうか
-    if(memcmp(hdr->dst, ETHERNET_ADDR_BROADCAST, ETHERNET_ADDR_LEN) != 0){
-        return;
-    }
+    
 
 #ifdef DEBUG
     fprintf(stderr, ">> ethernet_rx << \n");
