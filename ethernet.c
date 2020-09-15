@@ -166,7 +166,7 @@ ethernet_rx (uint8_t *frame, size_t flen, void *arg){
 #endif
 
     /* your code here: payload と plen に正しい値を設定 */
-    payload =  (uint8_t *)(hdr + sizeof(struct ethernet_hdr)); //?
+    payload =  (uint8_t *)(hdr + 1); //?
     plen = flen - sizeof(struct ethernet_hdr); // ?
 
     dev->rx_handler(dev, hdr->type, payload, plen);
