@@ -29,7 +29,7 @@ rawdev_tap_tx (struct rawdev *dev, const uint8_t *buf, size_t len) {
 
 static int
 rawdev_tap_addr (struct rawdev *dev, uint8_t *dst, size_t size) {
-    return tap_dev_addr(dev->priv, dst, size);
+    return tap_dev_addr(dev->name, dst, size);
 }
 
 struct rawdev_ops tap_dev_ops = {
