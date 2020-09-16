@@ -165,7 +165,7 @@ ip_rx (uint8_t *dgram, size_t dlen, struct netdev *dev){
         return;
     }
     /* 4. TTLの検証 */
-    if(ntoh16(hdr->ttl) < 0){
+    if(!hdr->ttl){
         return;
     }
 
