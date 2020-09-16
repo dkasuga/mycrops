@@ -51,7 +51,7 @@ struct netif {
     struct netif *next;
     uint8_t family;
     struct netdev *dev;
-}
+};
 
 struct netdev {
     struct netdev *next;

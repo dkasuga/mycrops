@@ -74,7 +74,7 @@ netdev_rx_handler (struct netdev *dev, uint16_t type, uint8_t *packet, size_t pl
     struct netdev_proto *entry;
 
     for(entry = protos; entry; entry = entry->next) {
-        if(htons16(entry->type) == type) {
+        if(hton16(entry->type) == type) {
             entry->handler(packet, plen, dev);
             return;
         }

@@ -166,7 +166,7 @@ arp_send_request(struct netif *netif, const ip_addr_t *tpa){
     request.hdr.pro = hton16(ETHERNET_TYPE_IP);
     request.hdr.hln = ETHERNET_ADDR_LEN;
     request.hdr.pln = IP_ADDR_LEN;
-    request.hdr.op = hton16(ARP_OP_REQUST);
+    request.hdr.op = hton16(ARP_OP_REQUEST);
     memcpy(request.sha, netif->dev->addr, ETHERNET_ADDR_LEN);
     request.spa = ((struct netif_ip *)netif)->unicast;
     memset(request.tha, 0, ETHERNET_ADDR_LEN);
@@ -222,10 +222,10 @@ arp_rx (uint8_t *packet, size_t plen, struct netdev *dev){
     }
     message = (struct arp_ethernet *)packet;
     /* your code here: ヘッダの検証　*/
-    if(ntoh16(message->hdr->hrd) != ARP_HRD_ETHERNET) { // ?Do I have the hardware type in ar$hrd?
+    if(ntoh16(message->hdr.hrd) != ARP_HRD_ETHERNET) { // ?Do I have the hardware type in ar$hrd?
         return;
     }
-    if(ntoh16(message->hdr->pro) != ETHERNET_TYPE_IP) {
+    if(ntoh16(message->hdr.pro) != ETHERNET_TYPE_IP) {
         return;
     }
 
@@ -258,7 +258,7 @@ arp_rx (uint8_t *packet, size_t plen, struct netdev *dev){
         if (!merge) {
             pthread_mutex_lock(&mutex);
             /* your code here: ARPテーブルへのinsert */
-            arp_table_insert(&message->spa, message->sha);
+            arp_table_insert(&message->spa, message->sha); // 相手のreplyにより相手のMACアドレスがわかったので，tableに追加する
             pthread_mutex_unlock(&mutex);
         }
 
@@ -269,16 +269,44 @@ arp_rx (uint8_t *packet, size_t plen, struct netdev *dev){
         if (ntoh16(message->hdr.op) == ARP_OP_REQUEST) { // requestじゃないことなんてあるのか？
             /* your code here: ARPリプライの送信 */
             arp_send_reply(netif, message->sha, &message->spa, message->sha);
+            // 相手におまえのMACアドレスはなんぞやと聞かれたので，答える
         }
     }
     return;
 }
 
+int
+arp_resolve (struct netif *netif, const ip_addr_t *pa, uint8_t *ha){
+    struct arp_entry *entry;
 
+    pthread_mutex_lock(&mutex);
+    entry = arp_table_select(pa);
+    if(entry) {
+        if(memcmp(entry->ha, ETHERNET_ADDR_ANY, ETHERNET_ADDR_LEN) == 0) {
+            arp_send_request(netif, pa);
+            pthread_mutex_unlock(&mutex);
+            return ARP_RESOLVE_QUERY;
+        }
+        memcpy(ha, entry->ha, ETHERNET_ADDR_LEN);
+        pthread_mutex_unlock(&mutex);
+        return ARP_RESOLVE_FOUND;
+    }
+    entry = arp_table_freespace();
+    if(!entry) {
+        pthread_mutex_unlock(&mutex);
+        return ARP_RESOLVE_ERROR;
+    }
+    entry->used = 1;
+    entry->pa = *pa;
+    time(&entry->timestamp);
+    arp_send_request(netif, pa);
+    pthread_mutex_unlock(&mutex);
+    return ARP_RESOLVE_QUERY;
+}
 
-
-
-
-
-
+int arp_init(void) {
+    time(&timestamp);
+    netdev_proto_register(NETDEV_PROTO_ARP, arp_rx);
+    return 0;
+}
 
