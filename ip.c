@@ -191,8 +191,8 @@ ip_rx (uint8_t *dgram, size_t dlen, struct netdev *dev){
 #endif
 
     // CHECK: よくわかっていない
-    offset = ntoh16(hdr->offset);
-    if(offset & 0x2000 || offset & 0x1fff){
+    offset = ntoh16(hdr->offset); // fragmentsの16bit全体
+    if(offset & 0x2000 || offset & 0x1fff){ // 0x2000は前から3bit目
         // fragments does not support
         return;
     }
