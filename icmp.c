@@ -107,7 +107,7 @@ icmp_rx(uint8_t *packet, size_t plen, ip_addr_t *src, ip_addr_t *dst, struct net
     switch(hdr->type){
         case ICMP_TYPE_ECHO:
             /* your code here: icmp_tx を使って EchoReply を送信 */
-            icmp_tx(netif, (uint8_t)ICMP_TYPE_ECHOREPLY, hdr->code, hdr->spec, (uint8_t *)hdr+1, plen, src);
+            icmp_tx(netif, ICMP_TYPE_ECHOREPLY, hdr->code, hdr->spec, (uint8_t *)(hdr+1), plen - sizeof(struct icmp_hdr), src);
             break;
     }
 }
