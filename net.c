@@ -137,3 +137,8 @@ netdev_alloc (uint16_t type) {
     devices = dev;
     return dev;
 }
+
+struct netdev *
+netdev_root(void){
+    return devices;
+}

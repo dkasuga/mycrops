@@ -83,4 +83,7 @@ extern int
 netdev_add_netif(struct netdev *dev, struct netif *netif);
 extern struct netif *
 netdev_get_netif(struct netdev *dev, int family);
+extern struct netdev *
+netdev_root(void);
 #endif
+
