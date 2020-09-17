@@ -135,7 +135,7 @@ ip_tx_netdev (struct netif_ip *iface, uint8_t *packet, size_t plen, const ip_add
     struct netif *netif;
 
     netif = &iface->netif;
-    if(!(netif->dev->flags && NETDEV_FLAG_NOARP)){ // CHECK ?? 
+    if(!(netif->dev->flags & NETDEV_FLAG_NOARP)){ // CHECK ?? 
         if(*nexthop == iface->broadcast || *nexthop == IP_ADDR_BROADCAST){
             memcpy(ha, netif->dev->broadcast, netif->dev->alen); // BROADCASTのMACアドレス？
         } else {
