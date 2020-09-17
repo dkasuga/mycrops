@@ -74,6 +74,43 @@ udp_rx(uint8_t *packet, size_t plen, ip_addr_t *src, ip_addr_t *dst, struct neti
     return;
 }
 
+ssize_t 
+udp_tx (struct netif *iface, uint16_t sport, uint8_t *buf, size_t len, ip_addr_t *peer, uint16_t port){
+    char packet[65536];
+    ssize_t ret;
+    struct udp_hdr *hdr;
+    struct pseudo_hdr phdr;
+    uint16_t psum;
+
+    // チェックサム計算のために擬似ヘッダを用意
+    phdr.src = ((struct netif_ip *)iface)->unicast;
+    phdr.dst = *peer;
+    phdr.zero = 0;
+    phdr.protocol = IP_PROTOCOL_UDP;
+    phdr.len = hton16(sizeof(struct udp_hdr) + len);
+
+     /* your code here: */                                                              
+     /* 1. バッファ（packet）に対してUDPデータグラムを構築（ヘッダ生成＋データコピー）*/
+    hdr = (struct udp_hdr *)packet;
+    hdr->sport = sport;
+    hdr->dport = port;
+    hdr->len = hton16(sizeof(struct udp_hdr) + len);
+    psum = ~cksum16((uint16_t *)&phdr, sizeof(struct pseudo_hdr), 0);
+
+    memcpy(hdr+1, buf, len);
+    hdr->cksum = cksum16((uint16_t *)hdr, sizeof(struct udp_hdr)+len, psum); //0
+     
+     /* 2. UDPデータグラムをダンプ出力                                                 */
+#ifdef DEBUG
+    fprintf(stderr, ">>> udp_tx <<<\n");
+    udp_dump((uint8_t *)packet, sizeof(struct udp_hdr) + len);
+#endif
+     /* 3. ip_tx() を呼び出してUDPデータグラムを送信（戻り値をretに格納）                */
+    ret = ip_tx(iface, IP_PROTOCOL_UDP, packet, sizeof(struct udp_hdr) + len, peer);
+
+    return ret;
+}
+
 int
 udp_init(void){
     ip_add_protocol(IP_PROTOCOL_UDP, udp_rx);
